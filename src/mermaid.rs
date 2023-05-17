@@ -1,6 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
-
-use crate::{dfa::Dfa, grammer::Symbol, Derivation, DfaVertexRef, Grammer};
+use crate::{Dfa, DfaVertexRef};
 
 /// Converts an DFA to a mermaid graph
 /// https://mermaid-js.github.io/mermaid/#/graph?id=graph
@@ -11,7 +9,7 @@ use crate::{dfa::Dfa, grammer::Symbol, Derivation, DfaVertexRef, Grammer};
 /// A--a-->B
 /// ```
 /// **节点id仅用于标注，不保证与lookup table的id完全一样**
-pub fn parse_dfa(dfa: &Dfa, grammer: &Grammer) -> String {
+pub fn parse_dfa(dfa: &Dfa) -> String {
     // 遍历图
     let mut visited = Vec::new();
     let edge = tarverse_dfa_vertex(DfaVertexRef::clone(&dfa.start), &mut visited);
@@ -21,29 +19,26 @@ pub fn parse_dfa(dfa: &Dfa, grammer: &Grammer) -> String {
     visited.iter().enumerate().for_each(|(id, each)| {
         let mut items = String::new();
         each.borrow().items.iter().for_each(|item| {
-            let derivation = grammer
-                .get_symbol(&item.symbol_name)
-                .unwrap()
-                .derivations
-                .get(item.production_index)
-                .unwrap();
-            let mut derivation_format = derivation
+            let mut derivation_format = item
+                .derivation
                 .iter()
                 .enumerate()
-                .map(|(index, symbol_name)| {
+                .map(|(index, symbol)| {
                     if index == item.dot {
-                        format!("{}{}", "•", symbol_name)
+                        format!("{}{}", "•", symbol.borrow().name.clone())
                     } else {
-                        symbol_name.to_string()
+                        symbol.borrow().name.clone()
                     }
                 })
                 .collect::<Vec<String>>()
                 .join(" ");
+
             // add the dot in the end
-            if item.dot == derivation.len() {
+            if item.dot == item.derivation.len() {
                 derivation_format.push_str("•");
             }
-            let item_format = &format!("{} -> {}\\n", &item.symbol_name, derivation_format);
+            let item_format =
+                &format!("{} -> {}\\n", &item.symbol.borrow().name, derivation_format);
             items.push_str(&item_format);
         });
 

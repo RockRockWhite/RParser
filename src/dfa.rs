@@ -1,3 +1,4 @@
+use crate::{Derivation, Grammer, SymbolRef};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
@@ -5,21 +6,17 @@ use std::{
     rc::Rc,
 };
 
-use crate::{grammer, Grammer};
-
 #[derive(PartialEq, Hash, Eq, Clone)]
 pub struct Item {
-    pub symbol_name: String,
-    pub production_index: usize,
+    pub symbol: SymbolRef,
+    pub derivation: Derivation,
     pub dot: usize,
 }
 
 impl Item {
-    pub fn next_symbol(&self, grammer: &Grammer) -> Option<String> {
-        let symbol = grammer.get_symbol(&self.symbol_name).unwrap();
-        let derivation = &symbol.derivations[self.production_index];
-        if self.dot < derivation.len() {
-            Some(derivation[self.dot].clone())
+    pub fn next_symbol(&self) -> Option<SymbolRef> {
+        if self.dot < self.derivation.len() {
+            Some(SymbolRef::clone(&self.derivation[self.dot]))
         } else {
             None
         }
@@ -41,17 +38,17 @@ impl DfaVertexRef {
     }
 }
 
-impl PartialEq for DfaVertexRef {
-    fn eq(&self, other: &Self) -> bool {
-        self.borrow().items == other.borrow().items
-    }
-}
-
 impl Deref for DfaVertexRef {
     type Target = Rc<RefCell<StateVertex>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl PartialEq for DfaVertexRef {
+    fn eq(&self, other: &Self) -> bool {
+        self.borrow().items == other.borrow().items
     }
 }
 
@@ -71,15 +68,15 @@ impl Dfa {
         // start state items contains the dummy derivation
         // S' -> .S
         let start_item = Item {
-            symbol_name: grammer.get_dummy_start_name().into(),
-            production_index: 0,
+            symbol: SymbolRef::clone(&grammer.start),
+            derivation: grammer.start.borrow().derivations[0].clone(),
             dot: 0,
         };
 
         let start = DfaVertexRef::new();
         start.borrow_mut().items = Self::epsilon_closure(&start_item, grammer);
 
-        let mut visited = Vec::new();
+        let mut visited: Vec<DfaVertexRef> = Vec::new();
         Self::taverse_build(DfaVertexRef::clone(&start), &mut visited, grammer);
 
         Dfa {
@@ -101,20 +98,22 @@ impl Dfa {
 
         // get all the next symbols of the start state
         start.borrow().items.iter().for_each(|item| {
-            if let Some(next_symbol) = item.next_symbol(&grammer) {
+            if let Some(next_symbol) = item.next_symbol() {
                 // if the state in this cond not exists
                 // add it to the visited
-                if !neighbors.contains_key(&next_symbol) {
+                if !neighbors.contains_key(&next_symbol.borrow().name) {
                     let next_state = DfaVertexRef::new();
-                    neighbors.insert(next_symbol.clone(), DfaVertexRef::clone(&next_state));
+                    neighbors.insert(
+                        next_symbol.borrow().name.clone(),
+                        DfaVertexRef::clone(&next_state),
+                    );
                 }
+                let next_state = neighbors.get(&next_symbol.borrow().name).unwrap();
 
-                let next_state = neighbors.get(&next_symbol).unwrap();
-
-                // get the next state
+                // add new item to the next state
                 let next_item = Item {
-                    symbol_name: item.symbol_name.clone(),
-                    production_index: item.production_index,
+                    symbol: SymbolRef::clone(&item.symbol),
+                    derivation: item.derivation.clone(),
                     dot: item.dot + 1,
                 };
                 // get the epsilon closure of the next state
@@ -150,18 +149,21 @@ impl Dfa {
         res.insert(item.clone());
         // 2. item 能推导的每个元素的闭包集合
         // 即 item 的推倒式 dot 后面的元素
-        if let Some(next) = item.next_symbol(grammer) {
+        if let Some(next_symbol) = item.next_symbol() {
             // 添加所有能next能够推导的item
-            let next_symbol = grammer.get_symbol(&next).unwrap();
-            for index in 0..next_symbol.derivations.len() {
-                let curr_item = Item {
-                    symbol_name: next.clone(),
-                    production_index: index,
-                    dot: 0,
-                };
+            next_symbol
+                .borrow()
+                .derivations
+                .iter()
+                .for_each(|derivation| {
+                    let curr_item = Item {
+                        symbol: SymbolRef::clone(&next_symbol),
+                        derivation: derivation.clone(),
+                        dot: 0,
+                    };
 
-                res.extend(Self::epsilon_closure(&curr_item, grammer));
-            }
+                    res.extend(Self::epsilon_closure(&curr_item, grammer));
+                })
         };
         res
     }

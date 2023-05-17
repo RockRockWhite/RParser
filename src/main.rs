@@ -1,4 +1,4 @@
-use rparser::{Derivation, Dfa, Grammer, GrammerBuilder};
+use rparser::{DerivationBuilder, Dfa, GrammerBuilder};
 
 enum Token {
     Number(i64),
@@ -7,25 +7,53 @@ enum Token {
 }
 
 fn main() {
-    let grammer = GrammerBuilder::new()
-        .set_start("E")
-        .add_derivation("E", Derivation::from(vec!["T".to_string()]))
+    let mut grammer_builder = GrammerBuilder::new();
+
+    let e_symbol = grammer_builder.get_symbol("E");
+    let t_symbol = grammer_builder.get_symbol("T");
+    let plus_symbol = grammer_builder.get_symbol("+");
+    let mul_symbol = grammer_builder.get_symbol("*");
+    let lparen_symbol = grammer_builder.get_symbol("(");
+    let rparen_symbol = grammer_builder.get_symbol(")");
+    let int_symbol = grammer_builder.get_symbol("int");
+
+    let grammer = grammer_builder
+        .set_start(&e_symbol)
         .add_derivation(
-            "E",
-            Derivation::from(vec!["T".to_string(), "+".to_string(), "E".to_string()]),
+            &e_symbol,
+            DerivationBuilder::new().add_symbol(&t_symbol).build(),
         )
         .add_derivation(
-            "T",
-            Derivation::from(vec!["(".to_string(), "E".to_string(), ")".to_string()]),
+            &e_symbol,
+            DerivationBuilder::new()
+                .add_symbol(&t_symbol)
+                .add_symbol(&plus_symbol)
+                .add_symbol(&e_symbol)
+                .build(),
         )
         .add_derivation(
-            "T",
-            Derivation::from(vec!["int".to_string(), "*".to_string(), "T".to_string()]),
+            &t_symbol,
+            DerivationBuilder::new()
+                .add_symbol(&lparen_symbol)
+                .add_symbol(&e_symbol)
+                .add_symbol(&rparen_symbol)
+                .build(),
         )
-        .add_derivation("T", Derivation::from(vec!["int".to_string()]))
+        .add_derivation(
+            &t_symbol,
+            DerivationBuilder::new()
+                .add_symbol(&int_symbol)
+                .add_symbol(&mul_symbol)
+                .add_symbol(&t_symbol)
+                .build(),
+        )
+        .add_derivation(
+            &t_symbol,
+            DerivationBuilder::new().add_symbol(&int_symbol).build(),
+        )
         .build();
 
     let dfa = Dfa::from(&grammer);
-    let res = rparser::mermaid::parse_dfa(&dfa, &grammer);
+    let res = rparser::mermaid::parse_dfa(&dfa);
     println!("{}", res);
 }
