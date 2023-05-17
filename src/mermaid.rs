@@ -27,7 +27,7 @@ pub fn parse_dfa(dfa: &Dfa, grammer: &Grammer) -> String {
                 .derivations
                 .get(item.production_index)
                 .unwrap();
-            let derivation_format = derivation
+            let mut derivation_format = derivation
                 .iter()
                 .enumerate()
                 .map(|(index, symbol_name)| {
@@ -39,6 +39,10 @@ pub fn parse_dfa(dfa: &Dfa, grammer: &Grammer) -> String {
                 })
                 .collect::<Vec<String>>()
                 .join(" ");
+            // add the dot in the end
+            if item.dot == derivation.len() {
+                derivation_format.push_str("•");
+            }
             let item_format = &format!("{} -> {}\\n", &item.symbol_name, derivation_format);
             items.push_str(&item_format);
         });
