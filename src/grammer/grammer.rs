@@ -1,5 +1,9 @@
 use crate::{Derivation, DerivationBuilder, SymbolRef};
-use std::{cell::RefCell, collections::HashMap};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    hash::Hash,
+};
 
 pub struct Grammer {
     pub symbols: HashMap<String, SymbolRef>,
@@ -12,6 +16,7 @@ pub struct GrammerBuilder {
 }
 
 impl GrammerBuilder {
+    pub const EPSILON_SYMBOL: &str = "__EPSILON__";
     const DUMMY_START_SYMBOL: &str = "__DUMMY_START__";
 
     pub fn new() -> GrammerBuilder {
@@ -73,6 +78,22 @@ impl GrammerBuilder {
                 .borrow_mut()
                 .add_derivation(DerivationBuilder::new().add_symbol(&start).build());
 
+            // calculate the first and follow set
+            self.calculate_first_and_follow();
+
+            for each in self.symbols.borrow().values() {
+                // 输出每个符号的first集合
+                println!(
+                    "{}: {:?}",
+                    each.borrow().name,
+                    each.borrow()
+                        .first_set
+                        .iter()
+                        .map(|x| x.borrow().name.clone())
+                        .collect::<Vec<_>>()
+                );
+            }
+
             Grammer {
                 symbols: self.symbols.borrow().clone(),
                 start: dummy,
@@ -86,35 +107,70 @@ impl GrammerBuilder {
     /// This function should be called when the grammer is built
     fn calculate_first_and_follow(&mut self) {
         // calculate the first set
+        self.calculate_first();
     }
 
-    // /// Calculate the first set for each symbol
-    // /// This function should be called when the grammer is built
-    // fn calculate_first(&mut self) {
-    //     // for all the terminal symbols, the first set is itself
-    //     self.symbols
-    //         .iter_mut()
-    //         .filter(|(_, symbol)| symbol.is_terminal())
-    //         .for_each(|(symbol_name, symbol_data)| {
-    //             symbol_data.first_set.insert(symbol_name.clone());
-    //         });
+    /// Calculate the first set for each symbol
+    /// This function should be called when the grammer is built
+    fn calculate_first(&mut self) {
+        // for all the terminal symbols, the first set is itself
+        self.symbols
+            .borrow_mut()
+            .values()
+            .into_iter()
+            .filter(|symbol| symbol.borrow().is_terminal())
+            .for_each(|symbol| {
+                let mut first: HashSet<SymbolRef> = HashSet::new();
+                first.insert(SymbolRef::clone(symbol));
+                symbol.borrow_mut().first_set = first;
+            });
 
-    //     // tarverse all the derivations
-    //     self.symbols
-    //         .iter_mut()
-    //         .filter(|(_, symbol)| !symbol.is_terminal())
-    //         .for_each(|(symbol_name, symbol_data)| {
-    //             symbol_data.derivations.iter().for_each(|derication| {
-    //                 // for the first symbol in the right hand side of the derivation
-    //                 // if it is a terminal symbol, add it to the first set
-    //                 derication.iter().for_each(|right_hand_side_each|{
-    //                     if self.symbols[right_hand_side_each].is_terminal() {
-    //                         symbol_data.first_set.insert(right_hand_side_each.clone());
-    //                     }
+        loop {
+            let mut changed = false;
 
-    //                 });
+            // tarverse all the derivations
+            self.symbols
+                .borrow_mut()
+                .values()
+                .into_iter()
+                .filter(|symbol| !symbol.borrow().is_terminal())
+                .for_each(|symbol| {
+                    let mut first: HashSet<SymbolRef> = symbol.borrow_mut().first_set.clone();
 
-    //             })
-    //         });
-    // }
+                    symbol
+                        .borrow_mut()
+                        .derivations
+                        .iter()
+                        .for_each(|derication| {
+                            // for the first symbol in the right hand side of the derivation
+                            for right_each in derication.iter() {
+                                // if it is a terminal symbol, add it to the first set, then break
+                                if right_each.borrow().is_terminal() {
+                                    first.insert(SymbolRef::clone(right_each));
+                                    break;
+                                }
+
+                                // if the right_each is a non-terminal symbol
+                                // add the first set of it to the first set
+                                first.extend(right_each.borrow().first_set.clone());
+
+                                // if the right_each's first set contains epsilon, continue
+                                if !first.contains(&SymbolRef::build(Self::EPSILON_SYMBOL)) {
+                                    break;
+                                }
+                            }
+                        });
+
+                    // if the first set is changed, set the changed flag to true
+                    if first != symbol.borrow().first_set {
+                        changed = true;
+                        symbol.borrow_mut().first_set = first;
+                    }
+                });
+
+            if !changed {
+                break;
+            }
+        }
+    }
 }

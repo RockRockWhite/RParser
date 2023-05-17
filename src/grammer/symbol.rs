@@ -25,7 +25,7 @@ impl Symbol {
     }
 
     pub fn is_terminal(&self) -> bool {
-        self.derivations.len() != 0
+        self.derivations.len() == 0
     }
 }
 
