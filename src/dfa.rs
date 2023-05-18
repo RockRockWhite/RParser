@@ -21,10 +21,14 @@ impl Item {
             None
         }
     }
+
+    pub fn is_reducible(&self) -> bool {
+        self.dot == self.derivation.len()
+    }
 }
 pub struct StateVertex {
     pub items: HashSet<Item>,
-    pub neighbors: HashMap<String, DfaVertexRef>,
+    pub neighbors: HashMap<SymbolRef, DfaVertexRef>,
 }
 
 pub struct DfaVertexRef(Rc<RefCell<StateVertex>>);
@@ -94,21 +98,21 @@ impl Dfa {
         // mark the start state as visited
         visited.push(DfaVertexRef::clone(&start));
 
-        let mut neighbors: HashMap<String, DfaVertexRef> = HashMap::new();
+        let mut neighbors: HashMap<SymbolRef, DfaVertexRef> = HashMap::new();
 
         // get all the next symbols of the start state
         start.borrow().items.iter().for_each(|item| {
             if let Some(next_symbol) = item.next_symbol() {
                 // if the state in this cond not exists
                 // add it to the visited
-                if !neighbors.contains_key(&next_symbol.borrow().name) {
+                if !neighbors.contains_key(&next_symbol) {
                     let next_state = DfaVertexRef::new();
                     neighbors.insert(
-                        next_symbol.borrow().name.clone(),
+                        SymbolRef::clone(&next_symbol),
                         DfaVertexRef::clone(&next_state),
                     );
                 }
-                let next_state = neighbors.get(&next_symbol.borrow().name).unwrap();
+                let next_state = neighbors.get(&next_symbol).unwrap();
 
                 // add new item to the next state
                 let next_item = Item {

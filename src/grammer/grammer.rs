@@ -252,5 +252,17 @@ impl GrammerBuilder {
                 break;
             }
         }
+
+        let epsilon = self.get_epsilon_symbol();
+        // delete all the epsilon in the follow set
+        self.symbols
+            .borrow_mut()
+            .values_mut()
+            .into_iter()
+            .for_each(|symbol| {
+                let mut follow = symbol.borrow().follow_set.clone();
+                follow.remove(&epsilon);
+                symbol.borrow_mut().follow_set = follow;
+            });
     }
 }
