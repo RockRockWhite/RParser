@@ -53,6 +53,34 @@ fn main() {
         )
         .build();
 
+    for each in grammer.symbols.values().into_iter() {
+        // 输出每个符号的first集合
+        println!(
+            "{}: {:?}",
+            each.borrow().name,
+            each.borrow()
+                .first_set
+                .iter()
+                .map(|x| x.borrow().name.clone())
+                .collect::<Vec<_>>()
+        );
+    }
+
+    println!("=====================");
+
+    for each in grammer.symbols.values().into_iter() {
+        // 输出每个符号的first集合
+        println!(
+            "{}: {:?}",
+            each.borrow().name,
+            each.borrow()
+                .follow_set
+                .iter()
+                .map(|x| x.borrow().name.clone())
+                .collect::<Vec<_>>()
+        );
+    }
+
     let dfa = Dfa::from(&grammer);
     let res = rparser::mermaid::parse_dfa(&dfa);
     println!("{}", res);
