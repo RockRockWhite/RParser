@@ -1,0 +1,41 @@
+%{
+    pub struct Foo {
+        x: i32,
+        y: i32,
+    }
+%}
+
+%%
+    {S : E} -> |datas| {
+        println!("reduce: S -> E");
+        datas[0].clone()
+    } ;;
+
+    {E : T + E} -> |datas| {
+        println!("reduce: E -> T + E");
+        let left = datas[0].parse::<i64>().unwrap();
+        let right = datas[2].parse::<i64>().unwrap();
+        (left + right).to_string()
+    } ;;
+    {E : T} -> |datas| {
+        println!("reduce: E -> T");
+        datas[0].clone()
+    } ;;
+
+    {T : int * T} -> |datas| {
+        println!("reduce: T -> int * T");
+        let left = datas[0].parse::<i64>().unwrap();
+        let right = datas[2].parse::<i64>().unwrap();
+        (left * right).to_string()
+    } ;;
+    {T : int} -> |datas| {
+        println!("reduce: T -> int");
+        datas[0].clone()
+    } ;;
+    {T : ( E )} -> |datas| {
+        println!("reduce: T -> int");
+        datas[0].clone()
+    } ;;
+%%
+    pub a: i32,
+    pub b: i64, 

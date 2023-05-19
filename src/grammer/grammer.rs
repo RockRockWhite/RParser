@@ -15,7 +15,7 @@ pub struct GrammerBuilder {
 }
 
 impl GrammerBuilder {
-    const END_SYMBOL: &str = "__$__";
+    pub const END_SYMBOL: &str = "__$__";
     const EPSILON_SYMBOL: &str = "__EPSILON__";
     const DUMMY_START_SYMBOL: &str = "__DUMMY_START__";
 

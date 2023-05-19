@@ -1,60 +1,51 @@
-use rparser::{DerivationBuilder, Dfa, GrammerBuilder};
-
-enum Token {
-    Number(i64),
-    Op(char),
-    EOF,
-}
+use rparser::{gen_code, DerivationBuilder, Dfa, GrammerBuilder};
 
 fn main() {
+    let config = rparser::parse_config("sample.rparser").unwrap();
+
     let mut grammer_builder = GrammerBuilder::new();
 
-    let e_symbol = grammer_builder.get_symbol("E");
-    let t_symbol = grammer_builder.get_symbol("T");
-    let plus_symbol = grammer_builder.get_symbol("+");
-    let mul_symbol = grammer_builder.get_symbol("*");
-    let lparen_symbol = grammer_builder.get_symbol("(");
-    let rparen_symbol = grammer_builder.get_symbol(")");
-    let int_symbol = grammer_builder.get_symbol("int");
+    // add the symbols
+    let mut handlers = Vec::new();
+    config.rules.iter().for_each(|rule| {
+        // get the symbols
+        let left_symbol = grammer_builder.get_symbol(&rule.left);
+        let right_symbols = rule
+            .right
+            .iter()
+            .map(|symbol| grammer_builder.get_symbol(symbol))
+            .collect::<Vec<_>>();
 
-    let grammer = grammer_builder
-        .set_start(&e_symbol)
-        .add_derivation(
-            &e_symbol,
-            DerivationBuilder::new().add_symbol(&t_symbol).build(),
-        )
-        .add_derivation(
-            &e_symbol,
-            DerivationBuilder::new()
-                .add_symbol(&t_symbol)
-                .add_symbol(&plus_symbol)
-                .add_symbol(&e_symbol)
-                .build(),
-        )
-        .add_derivation(
-            &t_symbol,
-            DerivationBuilder::new()
-                .add_symbol(&lparen_symbol)
-                .add_symbol(&e_symbol)
-                .add_symbol(&rparen_symbol)
-                .build(),
-        )
-        .add_derivation(
-            &t_symbol,
-            DerivationBuilder::new()
-                .add_symbol(&int_symbol)
-                .add_symbol(&mul_symbol)
-                .add_symbol(&t_symbol)
-                .build(),
-        )
-        .add_derivation(
-            &t_symbol,
-            DerivationBuilder::new().add_symbol(&int_symbol).build(),
-        )
-        .build();
+        // build the derivation
+        let mut derivation_builder = DerivationBuilder::new();
+        right_symbols.iter().for_each(|symbol| {
+            derivation_builder.add_symbol(symbol);
+        });
+
+        grammer_builder.add_derivation(&left_symbol, derivation_builder.build());
+        handlers.push(rule.handler.clone());
+    });
+
+    // set state S as the start symbol
+    let start_symbol = grammer_builder.get_symbol("S");
+    grammer_builder.set_start(&start_symbol);
+
+    let grammer = grammer_builder.build();
 
     let dfa = Dfa::from(&grammer);
-    let res = rparser::ActionTable::from_dfa(&dfa);
-    println!("{}", res.to_string());
+    println!("{}", rparser::mermaid::parse_dfa(&dfa));
+
+    let action_table = rparser::ActionTable::from_dfa(&dfa);
+
+    // 生成代码
+    let code = gen_code(
+        &config.declarations,
+        &config.variables,
+        &action_table,
+        &config.rules,
+    );
+
+    // 写入文件
+    std::fs::write("sample.out", code);
     // print the action
 }

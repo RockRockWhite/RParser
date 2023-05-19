@@ -1,18 +1,11 @@
-use std::{collections::HashMap, fmt::Display};
+use serde::{Deserialize, Serialize};
 
-use crate::{Dfa, DfaVertexRef, SymbolRef};
-
-pub fn goto(curr_state: DfaVertexRef, cond: SymbolRef) -> Option<DfaVertexRef> {
-    if let Some(next_state) = curr_state.borrow().neighbors.get(&cond) {
-        Some(DfaVertexRef::clone(next_state))
-    } else {
-        None
-    }
-}
+use crate::{Dfa, GrammerBuilder};
+use std::collections::HashMap;
 
 type Symbol = String;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReduceDerivation {
     pub left: Symbol,
     pub right: Vec<Symbol>,
@@ -24,7 +17,7 @@ impl ReduceDerivation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Action {
     Shift(usize),
     Reduce(ReduceDerivation),
@@ -32,6 +25,7 @@ pub enum Action {
     Error,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct State {
     pub actions: HashMap<Symbol, Action>,
 }
@@ -44,6 +38,7 @@ impl State {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct ActionTable {
     pub states: Vec<State>,
 }
@@ -97,7 +92,9 @@ impl ActionTable {
 
             // add accept action
             if each_vertex == &dfa.start {
-                curr_state.actions.insert(Symbol::from("$"), Action::Accept);
+                curr_state
+                    .actions
+                    .insert(Symbol::from(GrammerBuilder::END_SYMBOL), Action::Accept);
             }
 
             res.states.push(curr_state);
