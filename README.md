@@ -100,7 +100,7 @@ output info:
 >
 > ---
 > ## Action Table
-> ```json
+> ```txt
 > State 0:
 > T: Shift(1)
 > E: Shift(11)
