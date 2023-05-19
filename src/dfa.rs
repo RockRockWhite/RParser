@@ -1,4 +1,4 @@
-use crate::{Derivation, Grammer, SymbolRef};
+use crate::{grammer::Symbol, Derivation, Grammer, GrammerBuilder, SymbolRef};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
@@ -78,7 +78,7 @@ impl Dfa {
         };
 
         let start = DfaVertexRef::new();
-        start.borrow_mut().items = Self::epsilon_closure(&start_item, grammer);
+        start.borrow_mut().items = Self::epsilon_closure(&start_item, grammer, &mut Vec::new());
 
         let mut visited: Vec<DfaVertexRef> = Vec::new();
         Self::taverse_build(DfaVertexRef::clone(&start), &mut visited, grammer);
@@ -121,10 +121,11 @@ impl Dfa {
                     dot: item.dot + 1,
                 };
                 // get the epsilon closure of the next state
-                next_state
-                    .borrow_mut()
-                    .items
-                    .extend(Self::epsilon_closure(&next_item, grammer));
+                next_state.borrow_mut().items.extend(Self::epsilon_closure(
+                    &next_item,
+                    grammer,
+                    &mut Vec::new(),
+                ));
             }
         });
 
@@ -145,30 +146,58 @@ impl Dfa {
         });
     }
 
-    pub fn epsilon_closure(item: &Item, grammer: &Grammer) -> HashSet<Item> {
+    pub fn epsilon_closure(
+        item: &Item,
+        grammer: &Grammer,
+        visited: &mut Vec<Item>,
+    ) -> HashSet<Item> {
         let mut res = HashSet::new();
+        // if the item has been visited, return
+        if visited.contains(&item) {
+            return res;
+        }
+        // mark the item as visited
 
-        // 等于 item 能推导的每个元素的闭包集合+item本身
-        // 1. item 本身
-        res.insert(item.clone());
-        // 2. item 能推导的每个元素的闭包集合
-        // 即 item 的推倒式 dot 后面的元素
-        if let Some(next_symbol) = item.next_symbol() {
-            // 添加所有能next能够推导的item
-            next_symbol
-                .borrow()
-                .derivations
-                .iter()
-                .for_each(|derivation| {
-                    let curr_item = Item {
-                        symbol: SymbolRef::clone(&next_symbol),
-                        derivation: derivation.clone(),
-                        dot: 0,
-                    };
+        visited.push(item.clone());
 
-                    res.extend(Self::epsilon_closure(&curr_item, grammer));
-                })
-        };
+        // add the item itself if the right hand side is not epsilon
+        let epsilon_symbol = SymbolRef::build(GrammerBuilder::EPSILON_SYMBOL.into());
+        if item.derivation[0] != epsilon_symbol {
+            res.insert(item.clone());
+        }
+
+        // for each item behind the dot
+        // add it's epsilon closure
+        // until it cannot be derived to epsilon
+        if !item.is_reducible() {
+            for index in item.dot..item.derivation.len() {
+                let next_symbol = SymbolRef::clone(&item.derivation[index]);
+
+                // if is epsilon, do not add the item
+                if next_symbol == epsilon_symbol {
+                    break;
+                }
+
+                next_symbol
+                    .borrow()
+                    .derivations
+                    .iter()
+                    .for_each(|derivation| {
+                        let curr_item = Item {
+                            symbol: SymbolRef::clone(&next_symbol),
+                            derivation: derivation.clone(),
+                            dot: 0,
+                        };
+
+                        res.extend(Self::epsilon_closure(&curr_item, grammer, visited));
+                    });
+
+                if !next_symbol.borrow().first_set.contains(&epsilon_symbol) {
+                    break;
+                }
+            }
+        }
+
         res
     }
 }

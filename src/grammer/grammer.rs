@@ -16,8 +16,8 @@ pub struct GrammerBuilder {
 
 impl GrammerBuilder {
     pub const END_SYMBOL: &str = "__$__";
-    const EPSILON_SYMBOL: &str = "__EPSILON__";
-    const DUMMY_START_SYMBOL: &str = "__DUMMY_START__";
+    pub const EPSILON_SYMBOL: &str = "__EPSILON__";
+    pub const DUMMY_START_SYMBOL: &str = "__DUMMY_START__";
 
     pub fn new() -> GrammerBuilder {
         let mut res = GrammerBuilder {
@@ -144,29 +144,25 @@ impl GrammerBuilder {
                 .for_each(|symbol| {
                     let mut first: HashSet<SymbolRef> = symbol.borrow_mut().first_set.clone();
 
-                    symbol
-                        .borrow_mut()
-                        .derivations
-                        .iter()
-                        .for_each(|derication| {
-                            // for the first symbol in the right hand side of the derivation
-                            for right_each in derication.iter() {
-                                // if it is a terminal symbol, add it to the first set, then break
-                                if right_each.borrow().is_terminal() {
-                                    first.insert(SymbolRef::clone(right_each));
-                                    break;
-                                }
-
-                                // if the right_each is a non-terminal symbol
-                                // add the first set of it to the first set
-                                first.extend(right_each.borrow().first_set.clone());
-
-                                // if the right_each's first set contains epsilon, continue
-                                if !first.contains(&SymbolRef::build(Self::EPSILON_SYMBOL)) {
-                                    break;
-                                }
+                    symbol.borrow().derivations.iter().for_each(|derication| {
+                        // for the first symbol in the right hand side of the derivation
+                        for right_each in derication.iter() {
+                            // if it is a terminal symbol, add it to the first set, then break
+                            if right_each.borrow().is_terminal() {
+                                first.insert(SymbolRef::clone(right_each));
+                                break;
                             }
-                        });
+
+                            // if the right_each is a non-terminal symbol
+                            // add the first set of it to the first set
+                            first.extend(right_each.borrow().first_set.clone());
+
+                            // if the right_each's first set contains epsilon, continue
+                            if !first.contains(&SymbolRef::build(Self::EPSILON_SYMBOL)) {
+                                break;
+                            }
+                        }
+                    });
 
                     // if the first set is changed, set the changed flag to true
                     if first != symbol.borrow().first_set {
@@ -201,7 +197,8 @@ impl GrammerBuilder {
                 .into_iter()
                 .filter(|symbol| !symbol.borrow().is_terminal())
                 .for_each(|symbol| {
-                    symbol.borrow().derivations.iter().for_each(|derication| {
+                    let derivations = symbol.borrow().derivations.clone();
+                    derivations.iter().for_each(|derication| {
                         // for each 2 symbols in the right hand side of the derivation
                         derication
                             .windows(2)
