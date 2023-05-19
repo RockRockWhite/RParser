@@ -3,7 +3,6 @@ mod code_gen;
 mod config;
 mod dfa;
 mod grammer;
-mod grammer_test;
 pub mod mermaid;
 
 pub use action_table::ActionTable;

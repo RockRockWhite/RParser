@@ -45,7 +45,7 @@ pub fn parse_dfa(dfa: &Dfa) -> String {
         vertex.push_str(&format!("{}[\"{}\"]\n", id, items));
     });
 
-    format!("graph LR\n{}\n{}", vertex, edge)
+    format!("```mermaid\ngraph LR\n{}\n{}\n```", vertex, edge)
 }
 
 /// tarverse_dfa_vertex
