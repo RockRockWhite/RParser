@@ -54,7 +54,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
 
 ---
 ## Action Table
-```json
+```txt
 {}
 ```
 ---

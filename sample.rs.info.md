@@ -48,7 +48,7 @@ graph LR
 
 ---
 ## Action Table
-```json
+```txt
 State 0:
 T: Shift(5)
 E: Shift(10)
