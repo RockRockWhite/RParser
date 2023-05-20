@@ -1,4 +1,4 @@
-use crate::{config::Rule, ActionTable};
+use crate::{config::Rule, ActionTable, GrammerBuilder};
 
 pub fn gen_code(
     declarations: &str,
@@ -14,6 +14,7 @@ pub fn gen_code(
         let right_str = rule
             .right
             .iter()
+            .filter(|symbol| symbol != &&GrammerBuilder::EPSILON_SYMBOL.to_string())
             .map(|symbol| format!(r#""{}".into()"#, symbol))
             .collect::<Vec<_>>()
             .join(", ");
