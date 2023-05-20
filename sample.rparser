@@ -6,30 +6,190 @@
 %}
 
 %%
-    {S : A B} -> |datas| {
-        "".clone()
+    {S : program} -> |datas| {
+        println!("S -> program");
+        "".to_string()
     } ;;
-
-    {A : a B a} -> |datas|{
-        println!("reduce: A -> aBa")
-        datas[0].clone()
+    {program : block} -> |datas| {
+        println!("program -> block");
+        "".to_string()
     } ;;
-
-    {A : __EPSILON__} -> |datas|{
-        println!("reduce: A -> __EPSILON__")
-        datas[0].clone()
+    {block : left_curly_brace decls stmts right_curly_brace} -> |datas| {
+        println!("block -> left_curly_brace decls stmts right_curly_brace");
+        "".to_string()
     } ;;
-
-    {B : b A b} -> |datas|{
-        println!("reduce: B -> bAb")
-        datas[0].clone()
+    {decls : decls decl} -> |datas| {
+        println!("decls -> decls decl");
+        "".to_string()
     } ;;
-
-    {B : __EPSILON__} -> |datas|{
-        println!("reduce: B -> __EPSILON__")
-        datas[0].clone()
+    {decls : __EPSILON__} -> |datas| {
+        println!("decls -> ε");
+        "".to_string()
     } ;;
-   
+    {decl : type id ;} -> |datas| {
+        println!("decl -> type id ;");
+        "".to_string()
+    } ;;
+    {type : type [ num ]} -> |datas| {
+        println!("type -> type [ num ]");
+        "".to_string()
+    } ;;
+    {type : basic} -> |datas| {
+        println!("type -> basic");
+        "".to_string()
+    } ;;
+    {stmts : stmts stmt} -> |datas| {
+        println!("stmts -> stmts stmt");
+        "".to_string()
+    } ;;
+    {stmts : __EPSILON__} -> |datas| {
+        println!("stmts -> ε");
+        "".to_string()
+    } ;;
+    {stmt : loc = bool ;} -> |datas| {
+        println!("stmt -> loc = bool ;");
+        "".to_string()
+    } ;;
+    {stmt : if ( bool ) stmt} -> |datas| {
+        println!("stmt -> if ( bool ) stmt");
+        "".to_string()
+    } ;;
+    {stmt : if ( bool ) stmt else stmt} -> |datas| {
+        println!("stmt -> if ( bool ) stmt else stmt");
+        "".to_string()
+    } ;;
+    {stmt : while ( bool ) stmt} -> |datas| {
+        println!("stmt -> while ( bool ) stmt");
+        "".to_string()
+    } ;;
+    {stmt : do stmt while ( bool ) ;} -> |datas| {
+        println!("stmt -> do stmt while ( bool ) ;");
+        "".to_string()
+    } ;;
+    {stmt : break ;} -> |datas| {
+        println!("stmt -> break ;");
+        "".to_string()
+    } ;;
+    {stmt : block} -> |datas| {
+        println!("stmt -> block");
+        "".to_string()
+    } ;;
+    {loc : loc [ num ]} -> |datas| {
+        println!("loc -> loc [ num ]");
+        "".to_string()
+    } ;;
+    {loc : id} -> |datas| {
+        println!("loc -> id");
+        "".to_string()
+    } ;;
+    {bool : bool || join} -> |datas| {
+        println!("bool -> bool || join");
+        "".to_string()
+    } ;;
+    {bool : join} -> |datas| {
+        println!("bool -> join");
+        "".to_string()
+    } ;;
+    {join : join && equality} -> |datas| {
+        println!("join -> join && equality");
+        "".to_string()
+    } ;;
+    {join : equality} -> |datas| {
+        println!("join -> equality");
+        "".to_string()
+    } ;;
+    {equality : equality == rel} -> |datas| {
+        println!("equality -> equality == rel");
+        "".to_string()
+    } ;;
+    {equality : equality != rel} -> |datas| {
+        println!("equality -> equality != rel");
+        "".to_string()
+    } ;;
+    {equality : rel} -> |datas| {
+        println!("equality -> rel");
+        "".to_string()
+    } ;;
+    {rel : expr < expr} -> |datas| {
+        println!("rel -> expr < expr");
+        "".to_string()
+    } ;;
+    {rel : expr <= expr} -> |datas| {
+        println!("rel -> expr <= expr");
+        "".to_string()
+    } ;;
+    {rel : expr >= expr} -> |datas| {
+        println!("rel -> expr >= expr");
+        "".to_string()
+    } ;;
+    {rel : expr > expr} -> |datas| {
+        println!("rel -> expr > expr");
+        "".to_string()
+    } ;;
+    {rel : expr} -> |datas| {
+        println!("rel -> expr");
+        "".to_string()
+    } ;;
+    {expr : expr + term} -> |datas| {
+        println!("expr -> expr + term");
+        "".to_string()
+    } ;;
+    {expr : expr - term} -> |datas| {
+        println!("expr -> expr - term");
+        "".to_string()
+    } ;;
+    {expr : term} -> |datas| {
+        println!("expr -> term");
+        "".to_string()
+    } ;;
+    {term : term * unary} -> |datas| {
+        println!("term -> term * unary");
+        "".to_string()
+    } ;;
+    {term : term / unary} -> |datas| {
+        println!("term -> term / unary");
+        "".to_string()
+    } ;;
+    {term : unary} -> |datas| {
+        println!("term -> unary");
+        "".to_string()
+    } ;;
+    {unary : ! unary} -> |datas| {
+        println!("unary -> ! unary");
+        "".to_string()
+    } ;;
+    {unary : - unary} -> |datas| {
+        println!("unary -> - unary");
+        "".to_string()
+    } ;;
+    {unary : factor} -> |datas| {
+        println!("unary -> factor");
+        "".to_string()
+    } ;;
+    {factor : ( bool )} -> |datas| {
+        println!("factor -> ( bool )");
+        "".to_string()
+    } ;;
+    {factor : loc} -> |datas| {
+        println!("factor -> loc");
+        "".to_string()
+    } ;;
+    {factor : num} -> |datas| {
+        println!("factor -> num");
+        "".to_string()
+    } ;;
+    {factor : real} -> |datas| {
+        println!("factor -> real");
+        "".to_string()
+    } ;;
+    {factor : true} -> |datas| {
+        println!("factor -> true");
+        "".to_string()
+    } ;;
+    {factor : false} -> |datas| {
+        println!("factor -> false");
+        "".to_string()
+    } ;;
 %%
     pub a: i32,
-    pub b: i64, 
+    pub b: i64,

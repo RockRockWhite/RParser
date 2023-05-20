@@ -202,14 +202,30 @@ impl GrammerBuilder {
                         // for each 2 symbols in the right hand side of the derivation
                         derication
                             .windows(2)
-                            .map(|windows| {
-                                (SymbolRef::clone(&windows[0]), SymbolRef::clone(&windows[1]))
+                            .enumerate()
+                            .map(|(left_index, windows)| {
+                                (SymbolRef::clone(&windows[0]), left_index + 1)
                             })
-                            .for_each(|(left, right)| {
+                            .for_each(|(left, right_index)| {
                                 let mut follow = left.borrow().follow_set.clone();
-                                // add the first set of the right symbol
-                                // to the follow set of the left symbol
-                                follow.extend(right.borrow().first_set.clone());
+
+                                // for each symbol in the right hand side of the derivation
+                                for index in right_index..derication.len() {
+                                    // add the first set of the right symbol
+                                    // to the follow set of the left symbol
+                                    let right = &derication[index];
+                                    follow.extend(right.borrow().first_set.clone());
+
+                                    // if the first set of the right symbol contains epsilon
+                                    // continue
+                                    if !right
+                                        .borrow()
+                                        .first_set
+                                        .contains(&self.get_epsilon_symbol())
+                                    {
+                                        break;
+                                    }
+                                }
 
                                 // if the follow set is changed, set the changed flag to true
                                 if follow != left.borrow().follow_set {
