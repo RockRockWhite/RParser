@@ -1,4 +1,4 @@
-use crate::{grammer::Symbol, Derivation, Grammer, GrammerBuilder, SymbolRef};
+use crate::{grammer::Symbol, Derivation, DerivationBuilder, Grammer, GrammerBuilder, SymbolRef};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
@@ -152,50 +152,45 @@ impl Dfa {
         visited: &mut Vec<Item>,
     ) -> HashSet<Item> {
         let mut res = HashSet::new();
+
         // if the item has been visited, return
         if visited.contains(&item) {
             return res;
         }
-        // mark the item as visited
-
         visited.push(item.clone());
 
-        // add the item itself if the right hand side is not epsilon
+        // if the right hand side is epsilon
+        // set the item as A -> .
         let epsilon_symbol = SymbolRef::build(GrammerBuilder::EPSILON_SYMBOL.into());
-        if item.derivation[0] != epsilon_symbol {
-            res.insert(item.clone());
-        }
-
-        // for each item behind the dot
-        // add it's epsilon closure
-        // until it cannot be derived to epsilon
-        if !item.is_reducible() {
-            for index in item.dot..item.derivation.len() {
-                let next_symbol = SymbolRef::clone(&item.derivation[index]);
-
-                // if is epsilon, do not add the item
-                if next_symbol == epsilon_symbol {
-                    break;
-                }
-
-                next_symbol
-                    .borrow()
-                    .derivations
-                    .iter()
-                    .for_each(|derivation| {
-                        let curr_item = Item {
-                            symbol: SymbolRef::clone(&next_symbol),
-                            derivation: derivation.clone(),
-                            dot: 0,
-                        };
-
-                        res.extend(Self::epsilon_closure(&curr_item, grammer, visited));
-                    });
-
-                if !next_symbol.borrow().first_set.contains(&epsilon_symbol) {
-                    break;
-                }
+        let item = if item.derivation[0] == epsilon_symbol {
+            Item {
+                symbol: SymbolRef::clone(&item.symbol),
+                derivation: DerivationBuilder::new().build(),
+                dot: 0,
             }
+        } else {
+            item.clone()
+        };
+        res.insert(item.clone());
+
+        // for the item behind the dot
+        // add it's epsilon closure
+        if !item.is_reducible() {
+            let next_symbol = item.next_symbol().unwrap();
+
+            next_symbol
+                .borrow()
+                .derivations
+                .iter()
+                .for_each(|derivation| {
+                    let curr_item = Item {
+                        symbol: SymbolRef::clone(&next_symbol),
+                        derivation: derivation.clone(),
+                        dot: 0,
+                    };
+
+                    res.extend(Self::epsilon_closure(&curr_item, grammer, visited));
+                });
         }
 
         res
