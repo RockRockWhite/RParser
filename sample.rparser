@@ -6,144 +6,30 @@
 %}
 
 %%
-    {S : program} -> |datas| {
+    {S : A B} -> |datas| {
+        "".clone()
+    } ;;
+
+    {A : a B a} -> |datas|{
+        println!("reduce: A -> aBa")
         datas[0].clone()
     } ;;
-    {program : block} -> |datas| {
+
+    {A : __EPSILON__} -> |datas|{
+        println!("reduce: A -> __EPSILON__")
         datas[0].clone()
     } ;;
-    {block : left_curly_brace decls stmts right_curly_brace} -> |datas| {
+
+    {B : b A b} -> |datas|{
+        println!("reduce: B -> bAb")
         datas[0].clone()
     } ;;
-    {decls : decls decl} -> |datas| {
+
+    {B : __EPSILON__} -> |datas|{
+        println!("reduce: B -> __EPSILON__")
         datas[0].clone()
     } ;;
-    {decls : __EPSILON__} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {decl : type id ;} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {type : type [ num ]} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {type : basic} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmts : stmts stmt} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmts : __EPSILON__} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : loc = bool ;} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : if ( bool ) stmt} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : if ( bool ) stmt else stmt} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : while ( bool ) stmt} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : do stmt while ( bool ) ;} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : break ;} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {stmt : block} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {loc : loc [ num ]} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {loc : id} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {bool : bool || join} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {bool : join} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {join : join && equality} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {join : equality} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {equality : equality == rel} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {equality : equality != rel} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {equality : rel} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {rel : expr < expr} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {rel : expr <= expr} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {rel : expr >= expr} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {rel : expr > expr} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {rel : expr} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {expr : expr + term} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {expr : expr - term} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {expr : term} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {term : term * unary} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {term : term / unary} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {term : unary} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {unary : ! unary} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {unary : - unary} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {unary : factor} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {factor : ( bool )} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {factor : loc} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {factor : num} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {factor : real} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {factor : true} -> |datas| {
-        datas[0].clone()
-    } ;;
-    {factor : false} -> |datas| {
-        datas[0].clone()
-    } ;;
+   
 %%
     pub a: i32,
-    pub b: i64,
+    pub b: i64, 
