@@ -36,7 +36,7 @@
     } ;;
     {type : basic} -> |datas| {
         println!("type -> basic");
-        "".to_string()
+        datas[0].to_string()
     } ;;
     {stmts : stmts stmt} -> |datas| {
         println!("stmts -> stmts stmt");
@@ -176,7 +176,7 @@
     } ;;
     {factor : num} -> |datas| {
         println!("factor -> num");
-        "".to_string()
+        datas[0].to_string()
     } ;;
     {factor : real} -> |datas| {
         println!("factor -> real");
